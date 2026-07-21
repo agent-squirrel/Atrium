@@ -1,8 +1,8 @@
 """
 Portal dispatch - handles UniFi's external captive portal redirect.
 
-When an IP address is entered in UniFi → Network → Guest Control →
-External Portal Server, UniFi redirects connecting guests to:
+When an IP address is entered in UniFi → Client Devices → Hotspot →
+Landing Page, UniFi redirects connecting guests to:
 
   http://<ip>/guest/s/<site_name>/?id=<mac>&ap=<ap_mac>&ssid=<ssid>&t=<ts>&url=<url>
 

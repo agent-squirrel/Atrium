@@ -105,7 +105,7 @@ export default function PortalsPage() {
         <InformationCircleIcon className="w-5 h-5 mt-0.5 shrink-0 text-blue-500" />
         <div>
           <span className="font-medium">Unifi configuration: </span>
-          go to <span className="font-medium">Network → Settings → Guest Control → External Portal Server</span> and enter this server's IP address.
+          go to <span className="font-medium">Client Devices → Hotspot → Landing Page</span> and enter this server's IP address.
           UniFi automatically appends <code className="bg-blue-100 px-1 rounded font-mono">/guest/s/&lt;site-id&gt;/</code> to the IP -
           the correct portal is resolved from the site and SSID automatically.
         </div>
