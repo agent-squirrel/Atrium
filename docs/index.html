@@ -106,7 +106,7 @@
     </div>
 
     <div class="shot">
-      <div class="shot-frame"><img src="assets/screenshots/dashboard.png" alt="Atrium dashboard showing active portals, guest counts, and recent portal activity"></div>
+      <div class="shot-frame"><img src="assets/screenshots/dashboard.png" alt="Atrium dashboard showing active portals, guest counts, and recent portal activity" tabindex="0" role="button" class="lightbox-trigger"></div>
       <div class="shot-text">
         <span class="eyebrow">Dashboard</span>
         <h3>One overview, every site</h3>
@@ -115,7 +115,7 @@
     </div>
 
     <div class="shot">
-      <div class="shot-frame"><img src="assets/screenshots/portal_editor.png" alt="Portal appearance editor showing color pickers, font, layout, and logo/background upload"></div>
+      <div class="shot-frame"><img src="assets/screenshots/portal_editor.png" alt="Portal appearance editor showing color pickers, font, layout, and logo/background upload" tabindex="0" role="button" class="lightbox-trigger"></div>
       <div class="shot-text">
         <span class="eyebrow">Portal builder</span>
         <h3>Brand every portal to match</h3>
@@ -124,7 +124,7 @@
     </div>
 
     <div class="shot">
-      <div class="shot-frame"><img src="assets/screenshots/portals.png" alt="Portals list page showing configured portals, their site, auth type, and status"></div>
+      <div class="shot-frame"><img src="assets/screenshots/portals.png" alt="Portals list page showing configured portals, their site, auth type, and status" tabindex="0" role="button" class="lightbox-trigger"></div>
       <div class="shot-text">
         <span class="eyebrow">Portals</span>
         <h3>All your portals, one list</h3>
@@ -133,7 +133,7 @@
     </div>
 
     <div class="shot">
-      <div class="shot-frame"><img src="assets/screenshots/settings_dark.png" alt="Settings page in dark mode showing timezone, date format, and routing configuration"></div>
+      <div class="shot-frame"><img src="assets/screenshots/settings_dark.png" alt="Settings page in dark mode showing timezone, date format, and routing configuration" tabindex="0" role="button" class="lightbox-trigger"></div>
       <div class="shot-text">
         <span class="eyebrow">Settings</span>
         <h3>Configured your way</h3>
@@ -158,6 +158,41 @@
     <p>Multi-tenant captive portal management. <a class="plain" href="https://github.com/agent-squirrel/Atrium">Source on GitHub</a></p>
   </div>
 </footer>
+
+<div class="lightbox" id="lightbox">
+  <button class="lightbox-close" id="lightbox-close" aria-label="Close">&times;</button>
+  <img id="lightbox-img" src="" alt="">
+</div>
+
+<script>
+(function () {
+  var lightbox = document.getElementById('lightbox');
+  var lightboxImg = document.getElementById('lightbox-img');
+
+  function open(img) {
+    lightboxImg.src = img.src;
+    lightboxImg.alt = img.alt;
+    lightbox.classList.add('open');
+  }
+  function close() {
+    lightbox.classList.remove('open');
+    lightboxImg.src = '';
+  }
+
+  document.querySelectorAll('.lightbox-trigger').forEach(function (img) {
+    img.addEventListener('click', function () { open(img); });
+    img.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(img); }
+    });
+  });
+
+  lightbox.addEventListener('click', close);
+  document.getElementById('lightbox-close').addEventListener('click', close);
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') close();
+  });
+})();
+</script>
 
 </body>
 </html>
