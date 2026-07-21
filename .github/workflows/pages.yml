@@ -20,16 +20,27 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/configure-pages@v5
+      # v3 (and older) intermittently fail deploy-pages with "No artifacts
+      # named github-pages were found" - the artifact upload/retrieval
+      # mechanism they use internally is too old. include-hidden-files
+      # keeps docs/.nojekyll in the uploaded artifact, since v4+ excludes
+      # dotfiles by default.
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: docs
+          include-hidden-files: true
+
   deploy:
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: docs
       - id: deployment
         uses: actions/deploy-pages@v4
