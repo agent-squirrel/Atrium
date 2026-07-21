@@ -16,7 +16,6 @@ the operational side (controllers, sites, users, auditing) from one place.
 - Guest analytics per portal
 - Role-based access control with two-factor authentication
 - Full audit log of admin actions
-- Timezone- and date-format-aware throughout the admin panel
 - Light/dark mode
 - Encrypted full-site backup and restore (settings, content, and uploads)
 
@@ -39,12 +38,15 @@ Requires Docker and Docker Compose.
 
    `backend/.env` needs, at minimum, a `SECRET_KEY`, `JWT_SECRET_KEY`,
    `POSTGRES_PASSWORD`, and `ENCRYPTION_KEY` - the file has generation
-   commands for each right above the line to fill in.
+   commands for each right above the line to fill in. If Atrium will sit
+   behind another reverse proxy (Caddy, Traefik, a cloud load balancer)
+   rather than facing the internet directly, also set `TRUSTED_PROXY_CIDR`
+   to that proxy's address so guest IPs are logged correctly.
 
 3. Start the stack using the published images:
 
    ```sh
-   docker compose -f docker-compose.prod.yml up -d
+   docker compose up -d
    ```
 
 4. Open `http://localhost/admin/` and follow the first-run setup wizard to

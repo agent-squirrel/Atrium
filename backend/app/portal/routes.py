@@ -178,7 +178,7 @@ def connect(slug):
         "mac": mac,
         "ap_mac": ap_mac,
         "ssid": ssid,
-        "client_ip": request.remote_addr,
+        "client_ip": request.headers.get("X-Real-IP") or request.remote_addr,
         "redirect_url": redirect_url,
         "duration": duration,
         "rate_down": rate_down,

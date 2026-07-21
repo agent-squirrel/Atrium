@@ -22,13 +22,10 @@ services:
 
   backend:
     container_name: atrium-backend
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
+    image: ghcr.io/agent-squirrel/atrium-backend:latest
     restart: unless-stopped
     env_file: ./backend/.env
     volumes:
-      - ./backend:/app
       - uploads:/app/app/static/uploads
       - startup_status:/status
     networks:
@@ -36,22 +33,20 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    command: ["./entrypoint.sh"]
 
   web:
     container_name: atrium-web
-    build:
-      context: .
-      dockerfile: nginx/Dockerfile
+    image: ghcr.io/agent-squirrel/atrium-web:latest
     restart: unless-stopped
+    env_file: ./backend/.env
     ports:
       - "80:80"
     networks:
       - atrium_net
     volumes:
       # Lets nginx serve the backend's startup-stage marker as a plain static
-      # file (see entrypoint.sh) even before gunicorn is listening, so the
-      # loading screen can show real progress instead of just a spinner.
+      # file even before gunicorn is listening, so the loading screen can
+      # show real progress instead of just a spinner.
       - startup_status:/usr/share/nginx/html/status:ro
 
 volumes:

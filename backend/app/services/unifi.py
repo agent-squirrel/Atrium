@@ -213,6 +213,12 @@ class UnifiClient:
     def get_ssid_names(self, site_id: str) -> list[str]:
         return sorted({w["name"] for w in self.get_wlans(site_id) if w.get("name")})
 
+    def get_guest_ssid_names(self, site_id: str) -> list[str]:
+        """SSIDs with UniFi's own "Guest Policy" enabled. Empty on cloud
+        controllers (get_wlans returns nothing) or if no WLAN is flagged -
+        callers should treat empty as "unknown", not "no guest SSIDs"."""
+        return sorted({w["name"] for w in self.get_wlans(site_id) if w.get("name") and w.get("is_guest")})
+
 
 def _raise_for_status(r: requests.Response):
     if r.status_code >= 400:
