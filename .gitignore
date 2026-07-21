@@ -1,0 +1,17 @@
+# Secrets
+backend/.env
+
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# Node / frontend build output
+frontend/node_modules/
+frontend/dist/
+
+# Editor/OS cruft
+.DS_Store
+
+# Local Claude Code tool state/notes
+.claude/

@@ -1,0 +1,108 @@
+{% extends "portal/base.html" %}
+{% from "portal/_social_links.html" import social_links %}
+
+{% block content %}
+  <h1 style="color: #16A34A;">{{ portal.post_connect_heading or "You're Connected!" }}</h1>
+  <p class="welcome-text" style="margin-top: 0.75rem;">
+    {% if portal.post_connect_text %}
+      {{ portal.post_connect_text }}
+    {% else %}
+      Welcome to {{ portal.site.name if portal.site else 'our network' }}.<br/>
+      You now have internet access.
+    {% endif %}
+  </p>
+
+  {% if portal.promo_banner_path %}
+    {% if portal.promo_banner_link %}
+      <a href="{{ portal.promo_banner_link }}" target="_blank" rel="noopener noreferrer">
+        <img src="{{ portal.promo_banner_path }}" alt="" style="display:block;width:100%;border-radius:0.5rem;margin-top:1rem;" />
+      </a>
+    {% else %}
+      <img src="{{ portal.promo_banner_path }}" alt="" style="display:block;width:100%;border-radius:0.5rem;margin-top:1rem;" />
+    {% endif %}
+  {% endif %}
+
+  <p id="connect-status" class="welcome-text" style="font-size: 0.85rem; color: #6B7280; margin-top: 1rem;">
+    Finalizing your connection in <span id="countdown">{{ portal.connect_delay_seconds }}</span> seconds…
+  </p>
+
+  {% if redirect_url %}
+    {# Hidden until finalize() confirms authorization. The automatic
+       window.location.href redirect below covers most cases, but some
+       devices auto-close the captive-portal browser right after connectivity
+       is detected, cutting the auto-redirect off mid-navigation. A genuine
+       tap on a target="_blank" link is the one thing with a real chance of
+       reaching a persistent system browser in that case - see the social
+       icon behavior, which is the same underlying mechanism. #}
+    <a id="continue-btn" href="{{ redirect_url }}" target="_blank" rel="noopener noreferrer" class="btn"
+       style="display:none; text-decoration:none; text-align:center;">
+      Continue to Site →
+    </a>
+  {% endif %}
+
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+       style="width:64px;height:64px;display:block;margin:1.5rem auto 0;stroke:#16A34A;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;">
+    <circle cx="12" cy="12" r="10"/>
+    <polyline points="9 12 11 14 15 10"/>
+  </svg>
+
+  {# Hidden until finalize() confirms the device is actually authorized - before
+     that, the network's walled garden blocks these external HTTPS links, which
+     shows guests a confusing certificate warning instead of a working link. #}
+  <div id="social-links-wrapper" style="display:none;">
+    {{ social_links(portal) }}
+  </div>
+
+  <script>
+    (function () {
+      var seconds = {{ portal.connect_delay_seconds | int }};
+      var countdownEl = document.getElementById('countdown');
+      var statusEl = document.getElementById('connect-status');
+      var redirectUrl = {{ (redirect_url or '') | tojson }};
+      var token = {{ token | tojson }};
+
+      function tick() {
+        if (seconds <= 0) {
+          finalize();
+          return;
+        }
+        countdownEl.textContent = seconds;
+        seconds -= 1;
+        setTimeout(tick, 1000);
+      }
+
+      function finalize() {
+        statusEl.textContent = 'Connecting…';
+        var body = new URLSearchParams();
+        body.set('token', token);
+        fetch({{ url_for('portal.finalize', slug=portal.slug) | tojson }}, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: body.toString(),
+        })
+          .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+          .then(function (result) {
+            if (result.ok && result.data.ok) {
+              document.getElementById('social-links-wrapper').style.display = '';
+              if (redirectUrl) {
+                statusEl.textContent = 'Redirecting you now… if nothing happens, tap the button below.';
+                var continueBtn = document.getElementById('continue-btn');
+                if (continueBtn) continueBtn.style.display = '';
+                window.location.href = redirectUrl;
+              } else {
+                statusEl.textContent = "You're all set - enjoy!";
+              }
+            } else {
+              throw new Error((result.data && result.data.error) || 'Something went wrong.');
+            }
+          })
+          .catch(function (err) {
+            statusEl.innerHTML = (err.message || 'Something went wrong connecting you.') +
+              ' <a href="{{ url_for("portal.show_portal", slug=portal.slug) }}" style="color: var(--primary);">Try again</a>';
+          });
+      }
+
+      tick();
+    })();
+  </script>
+{% endblock %}

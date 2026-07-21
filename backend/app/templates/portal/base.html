@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{{ portal.welcome_heading or 'Welcome' }}</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family={{ (portal.font_family or 'Inter') | replace(' ', '+') }}:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --primary: {{ portal.primary_color or '#3B82F6' }};
+      --secondary: {{ portal.secondary_color or '#1E40AF' }};
+    }
+
+    body {
+      font-family: '{{ portal.font_family or 'Inter' }}', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      min-height: 100vh;
+    }
+
+    body.layout-centered {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      {% if portal.background_image_path %}
+      background: url('{{ portal.background_image_path }}') center/cover no-repeat fixed;
+      {% else %}
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      {% endif %}
+    }
+
+    body.layout-split {
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 768px) {
+      body.layout-split { flex-direction: row; }
+    }
+
+    /* Split: stacked (image band on top, form below) on mobile, side-by-side
+       on desktop - the image side must stay visible on mobile, not disappear. */
+    .side {
+      min-height: 30vh;
+      {% if portal.background_image_path %}
+      background: url('{{ portal.background_image_path }}') center/cover no-repeat;
+      {% else %}
+      background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+      {% endif %}
+    }
+
+    @media (min-width: 768px) {
+      .side { flex: 1 1 50%; min-height: 100vh; }
+    }
+
+    .card {
+      background: rgba(255,255,255,{{ ((portal.card_opacity if portal.card_opacity is not none else 97) / 100) | round(2) }});
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border-radius: 1rem;
+      padding: 2rem;
+      width: 100%;
+      max-width: 440px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+
+    body.layout-split .card {
+      flex: 1 1 50%;
+      max-width: 480px;
+      margin: 0 auto;
+      border-radius: 0;
+      box-shadow: none;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      padding: 2.5rem;
+    }
+
+    .logo {
+      display: block;
+      max-height: 80px;
+      max-width: 200px;
+      margin: 0 auto 1.5rem;
+      object-fit: contain;
+    }
+
+    h1 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      text-align: center;
+      color: #111;
+      margin-bottom: 0.5rem;
+    }
+
+    .welcome-text {
+      color: #555;
+      text-align: center;
+      margin-bottom: 1.5rem;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .error-box {
+      background: #FEE2E2;
+      border: 1px solid #FECACA;
+      color: #B91C1C;
+      border-radius: 0.5rem;
+      padding: 0.75rem 1rem;
+      margin-bottom: 1rem;
+      font-size: 0.9rem;
+    }
+
+    .form-group {
+      margin-bottom: 1rem;
+    }
+
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: #374151;
+      margin-bottom: 0.35rem;
+    }
+
+    label .required {
+      color: #EF4444;
+      margin-left: 2px;
+    }
+
+    input[type="text"],
+    input[type="email"],
+    input[type="tel"],
+    input[type="number"],
+    select,
+    textarea {
+      width: 100%;
+      padding: 0.6rem 0.75rem;
+      border: 1px solid #D1D5DB;
+      border-radius: 0.5rem;
+      font-size: 0.95rem;
+      color: #111;
+      background: #fff;
+      transition: border-color 0.15s;
+      outline: none;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--primary) 20%, transparent);
+    }
+
+    .checkbox-group {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.6rem;
+    }
+
+    .checkbox-group input[type="checkbox"] {
+      margin-top: 2px;
+      width: 16px;
+      height: 16px;
+      accent-color: var(--primary);
+      flex-shrink: 0;
+    }
+
+    .checkbox-group label {
+      margin-bottom: 0;
+      font-weight: 400;
+    }
+
+    .voucher-section {
+      border-top: 1px solid #E5E7EB;
+      padding-top: 1rem;
+      margin-top: 0.5rem;
+    }
+
+    .voucher-section h3 {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #374151;
+      margin-bottom: 0.75rem;
+    }
+
+    .btn {
+      display: block;
+      width: 100%;
+      padding: 0.75rem;
+      background: var(--primary);
+      color: #fff;
+      font-size: 1rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 0.5rem;
+      cursor: pointer;
+      margin-top: 1.25rem;
+      transition: background 0.15s, transform 0.1s;
+    }
+
+    .btn:hover { background: var(--secondary); }
+    .btn:active { transform: scale(0.98); }
+
+    .disclaimer {
+      margin-top: 1.25rem;
+      padding-top: 1rem;
+      border-top: 1px solid #E5E7EB;
+      font-size: 0.78rem;
+      color: #6B7280;
+      line-height: 1.5;
+    }
+
+    .social-links {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 1.5rem;
+    }
+
+    /* A background chip on each icon (not just a bare glyph) keeps them legible
+       regardless of card_opacity - at low opacity the card reveals whatever's
+       behind it, which can wash out a plain gray icon to invisible contrast. */
+    .social-links a {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.06);
+      color: #6B7280;
+      transition: color 0.15s, background 0.15s;
+    }
+
+    .social-links a:hover {
+      color: #fff;
+      background: var(--primary);
+    }
+  </style>
+  {% block extra_head %}{% endblock %}
+</head>
+<body class="layout-{{ portal.layout or 'centered' }}">
+  {% if (portal.layout or 'centered') == 'split' %}
+    <div class="side"></div>
+  {% endif %}
+  <div class="card">
+    {% if portal.logo_path %}
+      <img class="logo" src="{{ portal.logo_path }}" alt="Logo" />
+    {% endif %}
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

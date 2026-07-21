@@ -1,0 +1,115 @@
+{% extends "portal/base.html" %}
+
+{% block content %}
+  <h1>{{ portal.welcome_heading }}</h1>
+
+  {% if portal.welcome_text %}
+    <p class="welcome-text">{{ portal.welcome_text }}</p>
+  {% endif %}
+
+  {% if error %}
+    <div class="error-box">{{ error }}</div>
+  {% endif %}
+
+  <form method="POST" action="{{ url_for('portal.connect', slug=portal.slug) }}" novalidate>
+    <input type="hidden" name="mac" value="{{ mac }}" />
+    <input type="hidden" name="ap_mac" value="{{ ap_mac }}" />
+    <input type="hidden" name="ssid" value="{{ ssid }}" />
+    <input type="hidden" name="redirect_url" value="{{ redirect_url }}" />
+    <input type="hidden" name="t" value="{{ t }}" />
+
+    {% for field in fields %}
+      <div class="form-group">
+        {% if field.field_type == 'checkbox' %}
+          <div class="checkbox-group">
+            <input
+              type="checkbox"
+              id="field_{{ field.field_key }}"
+              name="{{ field.field_key }}"
+              value="true"
+              {% if field.is_required %}required{% endif %}
+            />
+            <label for="field_{{ field.field_key }}">
+              {{ field.label }}{% if field.is_required %}<span class="required">*</span>{% endif %}
+            </label>
+          </div>
+        {% elif field.field_type == 'select' %}
+          <label for="field_{{ field.field_key }}">
+            {{ field.label }}{% if field.is_required %}<span class="required">*</span>{% endif %}
+          </label>
+          <select
+            id="field_{{ field.field_key }}"
+            name="{{ field.field_key }}"
+            {% if field.is_required %}required{% endif %}
+          >
+            <option value="">{{ field.placeholder or 'Select…' }}</option>
+            {% for opt in (field.options or []) %}
+              <option value="{{ opt }}">{{ opt }}</option>
+            {% endfor %}
+          </select>
+        {% elif field.field_type == 'textarea' %}
+          <label for="field_{{ field.field_key }}">
+            {{ field.label }}{% if field.is_required %}<span class="required">*</span>{% endif %}
+          </label>
+          <textarea
+            id="field_{{ field.field_key }}"
+            name="{{ field.field_key }}"
+            placeholder="{{ field.placeholder or '' }}"
+            rows="3"
+            {% if field.is_required %}required{% endif %}
+          ></textarea>
+        {% else %}
+          <label for="field_{{ field.field_key }}">
+            {{ field.label }}{% if field.is_required %}<span class="required">*</span>{% endif %}
+          </label>
+          <input
+            type="{{ field.field_type }}"
+            id="field_{{ field.field_key }}"
+            name="{{ field.field_key }}"
+            placeholder="{{ field.placeholder or '' }}"
+            {% if field.is_required %}required{% endif %}
+          />
+        {% endif %}
+      </div>
+    {% endfor %}
+
+    {% if portal.auth_type in ('voucher', 'both') %}
+      <div class="voucher-section">
+        <h3>{% if portal.auth_type == 'both' %}Have a voucher code? (optional){% else %}Enter your voucher code{% endif %}</h3>
+        <div class="form-group">
+          <input
+            type="text"
+            name="voucher_code"
+            placeholder="e.g. ABCD-EFGH"
+            style="text-transform: uppercase; letter-spacing: 0.1em;"
+            {% if portal.auth_type == 'voucher' %}required{% endif %}
+          />
+        </div>
+      </div>
+    {% endif %}
+
+    {% if portal.require_terms_acceptance %}
+      <div class="checkbox-group" style="margin-top: 1rem;">
+        <input type="checkbox" id="terms_accepted" name="terms_accepted" value="true" required />
+        <label for="terms_accepted">
+          {% if portal.terms_url %}
+            <a href="{{ portal.terms_url }}" target="_blank" rel="noopener noreferrer" style="color: var(--primary);">{{ portal.terms_checkbox_label or 'I agree to the Terms & Conditions' }}</a>
+          {% else %}
+            {{ portal.terms_checkbox_label or 'I agree to the Terms & Conditions' }}
+          {% endif %}
+        </label>
+      </div>
+    {% endif %}
+
+    <button type="submit" class="btn">{{ portal.button_label or 'Connect' }}</button>
+  </form>
+
+  {% if portal.disclaimer or (portal.terms_url and not portal.require_terms_acceptance) %}
+    <p class="disclaimer">
+      {% if portal.disclaimer %}{{ portal.disclaimer }}{% endif %}
+      {% if portal.terms_url and not portal.require_terms_acceptance %}
+        <a href="{{ portal.terms_url }}" target="_blank" rel="noopener noreferrer" style="color: var(--primary);">View full policy</a>
+      {% endif %}
+    </p>
+  {% endif %}
+{% endblock %}

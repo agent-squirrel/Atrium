@@ -1,0 +1,57 @@
+name: atrium
+
+networks:
+  atrium_net:
+    name: atrium_net
+
+services:
+  db:
+    container_name: atrium-db
+    image: postgres:16-alpine
+    restart: unless-stopped
+    env_file: ./backend/.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - atrium_net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U \"$$POSTGRES_USER\" -d \"$$POSTGRES_DB\""]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    container_name: atrium-backend
+    image: ghcr.io/agent-squirrel/atrium-backend:latest
+    restart: unless-stopped
+    env_file: ./backend/.env
+    volumes:
+      - uploads:/app/app/static/uploads
+      - startup_status:/status
+    networks:
+      - atrium_net
+    depends_on:
+      db:
+        condition: service_healthy
+
+  web:
+    container_name: atrium-web
+    image: ghcr.io/agent-squirrel/atrium-web:latest
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    networks:
+      - atrium_net
+    volumes:
+      # Lets nginx serve the backend's startup-stage marker as a plain static
+      # file even before gunicorn is listening, so the loading screen can
+      # show real progress instead of just a spinner.
+      - startup_status:/usr/share/nginx/html/status:ro
+
+volumes:
+  postgres_data:
+    name: atrium_postgres_data
+  uploads:
+    name: atrium_uploads
+  startup_status:
+    name: atrium_startup_status
