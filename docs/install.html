@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Install - Atrium</title>
+<meta name="description" content="Install Atrium with Docker Compose in a few minutes.">
+<meta property="og:title" content="Install Atrium">
+<meta property="og:description" content="Docker Compose, published images, no build step. Takes a few minutes.">
+<meta property="og:image" content="https://agent-squirrel.github.io/Atrium/assets/social-preview.png">
+<meta property="og:url" content="https://agent-squirrel.github.io/Atrium/install.html">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.ico">
+<link rel="apple-touch-icon" href="assets/icon-512.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/icon-mark.svg" alt=""> Atrium
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="https://github.com/agent-squirrel/Atrium">GitHub</a>
+      <a class="btn btn-primary btn-sm" href="#step-1">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<div class="wrap guide">
+  <h1>Install Atrium</h1>
+  <p class="lead">Docker Compose, published images, no build step. Takes a few minutes.</p>
+
+  <div class="callout">
+    Requires <a class="plain" href="https://docs.docker.com/get-docker/">Docker</a> and Docker Compose (bundled with Docker Desktop and modern Docker Engine installs). That's the only prerequisite.
+  </div>
+
+  <div class="step" id="step-1">
+    <div class="num">1</div>
+    <div>
+      <h2>Clone the repo</h2>
+      <p>The compose file and env template live in the repo, even though the app itself runs from published images.</p>
+      <pre><code>git clone https://github.com/agent-squirrel/Atrium.git
+cd Atrium</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">2</div>
+    <div>
+      <h2>Configure your environment</h2>
+      <p>Copy the example env file and fill in the required values - each has a one-line command to generate it.</p>
+      <pre><code>cp backend/.env.example backend/.env</code></pre>
+      <p>At minimum, <code>backend/.env</code> needs:</p>
+      <pre><code>SECRET_KEY=...          # python3 -c "import secrets; print(secrets.token_hex(32))"
+JWT_SECRET_KEY=...      # python3 -c "import secrets; print(secrets.token_hex(32))"
+POSTGRES_PASSWORD=...   # python3 -c "import secrets; print(secrets.token_urlsafe(24))"
+ENCRYPTION_KEY=...      # python3 -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"</code></pre>
+      <div class="callout">
+        If Atrium will sit behind another reverse proxy (Caddy, Traefik, a cloud load balancer) rather than facing the internet directly, also set <code>TRUSTED_PROXY_CIDR</code> to that proxy's address so guest IPs are logged correctly instead of the proxy's own.
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">3</div>
+    <div>
+      <h2>Start the stack</h2>
+      <p>This pulls the published backend and web images and brings up Postgres alongside them.</p>
+      <pre><code>docker compose up -d</code></pre>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">4</div>
+    <div>
+      <h2>Finish setup in the browser</h2>
+      <p>Open <code>http://localhost/admin/</code>. You'll land on the first-run setup wizard to create your superadmin account - or restore from an existing Atrium backup, if you have one.</p>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="num">5</div>
+    <div>
+      <h2>Point UniFi at it</h2>
+      <p>In the UniFi controller: <strong>Network → Settings → Guest Control → External Portal Server</strong>, and enter this server's address. Once you create a portal in Atrium, it'll show you the exact path to append.</p>
+    </div>
+  </div>
+
+  <p style="margin-top:56px;color:var(--text-muted);">
+    Building from source, contributing, or want hot-reload for frontend work instead? See
+    <a class="plain" href="https://github.com/agent-squirrel/Atrium/blob/main/DEVELOPMENT.md">DEVELOPMENT.md</a>.
+  </p>
+</div>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="index.html"><img src="assets/icon-mark.svg" alt=""> Atrium</a>
+    <p>Multi-tenant captive portal management. <a class="plain" href="https://github.com/agent-squirrel/Atrium">Source on GitHub</a></p>
+  </div>
+</footer>
+
+</body>
+</html>

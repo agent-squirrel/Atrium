@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Atrium - Multi-tenant captive portal management</title>
+<meta name="description" content="Atrium is an admin panel for running guest WiFi captive portals across multiple tenants and sites on a UniFi network.">
+<meta property="og:title" content="Atrium - Multi-tenant captive portal management">
+<meta property="og:description" content="Self-hosted admin panel for running branded guest WiFi captive portals across multiple tenants and sites on a UniFi network.">
+<meta property="og:image" content="https://agent-squirrel.github.io/Atrium/assets/social-preview.png">
+<meta property="og:url" content="https://agent-squirrel.github.io/Atrium/">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.ico">
+<link rel="apple-touch-icon" href="assets/icon-512.png">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="wrap">
+    <a class="brand" href="index.html">
+      <img src="assets/icon-mark.svg" alt=""> Atrium
+    </a>
+    <div class="nav-links">
+      <a href="install.html">Install</a>
+      <a href="https://github.com/agent-squirrel/Atrium">GitHub</a>
+      <a class="btn btn-primary btn-sm" href="install.html">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<header class="hero">
+  <div class="wrap">
+    <img class="icon-mark" src="assets/icon-mark.svg" alt="">
+    <h1>Guest WiFi, run properly.</h1>
+    <p class="lead">Atrium is a self-hosted admin panel for running branded guest WiFi captive portals across multiple tenants and sites on a UniFi network - from a single install you control.</p>
+    <div class="cta">
+      <a class="btn btn-primary" href="install.html">Get Started →</a>
+      <a class="btn btn-secondary" href="https://github.com/agent-squirrel/Atrium">View on GitHub</a>
+    </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">Features</span>
+      <h2>Everything a guest WiFi operator needs</h2>
+      <p>Built for MSPs and multi-site operators managing UniFi networks for clients - or for anyone who just wants proper guest WiFi without duct-taping it together.</p>
+    </div>
+    <div class="features">
+      <div class="feature-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V5a1 1 0 0 1 1-1h8a1 1 0 0 1 1 1v16"/><path d="M14 10h5a1 1 0 0 1 1 1v10"/><path d="M9 21v-4h1v4M7 8h1M7 11h1M7 14h1M11 8h1M11 11h1M11 14h1M17 14h1M17 17h1"/></svg></div>
+        <h3>Multi-tenant</h3>
+        <p>Separate tenants, sites, and portals under one install. Keep every client's config, branding, and data cleanly isolated.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><circle cx="9" cy="10" r="1.3" fill="currentColor" stroke="none"/><circle cx="13" cy="8" r="1.3" fill="currentColor" stroke="none"/><circle cx="16" cy="12" r="1.3" fill="currentColor" stroke="none"/><circle cx="10" cy="15" r="1.3" fill="currentColor" stroke="none"/><path d="M12 21a2 2 0 0 1-2-2c0-.6.5-1 1-1.3.5-.3.8-.6.8-1.2 0-.8-.8-1.5-1.8-1.5H9"/></svg></div>
+        <h3>Portal builder</h3>
+        <p>Per-portal branding, colors, logos, backgrounds, and a customizable post-connect page - no code required.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 9a11 11 0 0 1 15 0"/><path d="M7.5 12.5a7 7 0 0 1 9 0"/><path d="M10.5 16a3 3 0 0 1 3 0"/><circle cx="12" cy="19" r="1" fill="currentColor" stroke="none"/></svg></div>
+        <h3>Guest session management</h3>
+        <p>See active devices live, manually authorize, reconnect, or deauthorize, and issue vouchers for time-limited access.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20V10M10 20V4M16 20v-7M4 20h16"/></svg></div>
+        <h3>Guest analytics</h3>
+        <p>Per-portal session history and usage trends, so you can actually answer "how many guests did we get."</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>RBAC + 2FA</h3>
+        <p>Role-based access control with two-factor authentication, so client-facing staff only see what they should.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="6" y="4" width="12" height="17" rx="1.5"/><path d="M9 4V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1"/><path d="M9 10h6M9 13h6M9 16h4"/></svg></div>
+        <h3>Full audit log</h3>
+        <p>Every admin action recorded - who changed what, and when.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.5 3.8 5.8 3.8 9s-1.3 6.5-3.8 9c-2.5-2.5-3.8-5.8-3.8-9S9.5 5.5 12 3z"/></svg></div>
+        <h3>Timezone &amp; date aware</h3>
+        <p>Configurable timezone and date format, applied consistently across the whole admin panel.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 14.5A8.5 8.5 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg></div>
+        <h3>Light &amp; dark mode</h3>
+        <p>A proper dark theme, not an afterthought - because admins work at odd hours too.</p>
+      </div>
+      <div class="feature-card">
+        <div class="icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="5" rx="1"/><path d="M5 9v9a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9"/><path d="M10 13h4"/></svg></div>
+        <h3>Backup &amp; restore</h3>
+        <p>Encrypted full-site backup covering settings, content, and uploads - restore onto a fresh install in minutes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="alt">
+  <div class="wrap">
+    <div class="section-head">
+      <span class="eyebrow">A closer look</span>
+      <h2>Clean, fast, and built to actually use</h2>
+    </div>
+
+    <div class="shot">
+      <div class="shot-frame"><img src="assets/screenshots/dashboard.png" alt="Atrium dashboard showing active portals, guest counts, and recent portal activity"></div>
+      <div class="shot-text">
+        <span class="eyebrow">Dashboard</span>
+        <h3>One overview, every site</h3>
+        <p>Active portals, live guest counts, and recent activity across every tenant - at a glance, the moment you log in.</p>
+      </div>
+    </div>
+
+    <div class="shot">
+      <div class="shot-frame"><img src="assets/screenshots/portal_editor.png" alt="Portal appearance editor showing color pickers, font, layout, and logo/background upload"></div>
+      <div class="shot-text">
+        <span class="eyebrow">Portal builder</span>
+        <h3>Brand every portal to match</h3>
+        <p>Colors, fonts, layout, logo, and background - tailor the guest login experience per portal, per tenant, without touching code.</p>
+      </div>
+    </div>
+
+    <div class="shot">
+      <div class="shot-frame"><img src="assets/screenshots/portals.png" alt="Portals list page showing configured portals, their site, auth type, and status"></div>
+      <div class="shot-text">
+        <span class="eyebrow">Portals</span>
+        <h3>All your portals, one list</h3>
+        <p>Search and manage every captive portal instance across every site, with direct links to guests, analytics, and vouchers.</p>
+      </div>
+    </div>
+
+    <div class="shot">
+      <div class="shot-frame"><img src="assets/screenshots/settings_dark.png" alt="Settings page in dark mode showing timezone, date format, and routing configuration"></div>
+      <div class="shot-text">
+        <span class="eyebrow">Settings</span>
+        <h3>Configured your way</h3>
+        <p>Timezone, date format, routing, guest defaults, security, and email - plus a dark theme that's genuinely easy on the eyes.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap" style="text-align:center;">
+    <span class="eyebrow">Self-hosted</span>
+    <h2 style="font-size:2.1rem;font-weight:800;margin:0 0 16px;">Run it on your own infrastructure</h2>
+    <p style="color:var(--text-muted);font-size:1.05rem;max-width:560px;margin:0 auto 36px;">Docker Compose, published images, five minutes. Your data stays on your server.</p>
+    <a class="btn btn-primary" href="install.html">Read the install guide →</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <a class="brand" href="index.html"><img src="assets/icon-mark.svg" alt=""> Atrium</a>
+    <p>Multi-tenant captive portal management. <a class="plain" href="https://github.com/agent-squirrel/Atrium">Source on GitHub</a></p>
+  </div>
+</footer>
+
+</body>
+</html>
