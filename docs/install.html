@@ -31,17 +31,16 @@
 
 <div class="wrap guide">
   <h1>Install Atrium</h1>
-  <p class="lead">Docker Compose, published images, no build step. Takes a few minutes.</p>
+  <p class="lead">Docker</p>
 
   <div class="callout">
-    Requires <a class="plain" href="https://docs.docker.com/get-docker/">Docker</a> and Docker Compose (bundled with Docker Desktop and modern Docker Engine installs). That's the only prerequisite.
+    Requires <a class="plain" href="https://docs.docker.com/get-docker/">Docker</a> and Docker Compose (bundled with Docker Desktop and modern Docker Engine installs).
   </div>
 
   <div class="step" id="step-1">
     <div class="num">1</div>
     <div>
       <h2>Clone the repo</h2>
-      <p>The compose file and env template live in the repo, even though the app itself runs from published images.</p>
       <pre><code>git clone https://github.com/agent-squirrel/Atrium.git
 cd Atrium</code></pre>
     </div>
@@ -85,7 +84,7 @@ ENCRYPTION_KEY=...      # python3 -c "from cryptography.fernet import Fernet; pr
     <div class="num">5</div>
     <div>
       <h2>Point UniFi at it</h2>
-      <p>In the UniFi controller: <strong>Network → Settings → Guest Control → External Portal Server</strong>, and enter this server's address. Once you create a portal in Atrium, it'll show you the exact path to append.</p>
+      <p>In the UniFi controller: <strong>Network → Settings → Guest Control → External Portal Server</strong>, and enter this server's address.</p>
     </div>
   </div>
 

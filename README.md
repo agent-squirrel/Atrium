@@ -8,7 +8,7 @@ multiple tenants and sites on a UniFi network. It manages the portal-facing
 side of the experience (branded login pages, guest sessions, vouchers) and
 the operational side (controllers, sites, users, auditing) from one place.
 
-**[Website & screenshots](https://agent-squirrel.github.io/Atrium/)** - a friendlier overview than this README, with a walkthrough of the admin panel.
+**[Website & screenshots](https://agent-squirrel.github.io/Atrium/)**
 
 ## Features
 

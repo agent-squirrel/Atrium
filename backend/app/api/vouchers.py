@@ -80,6 +80,23 @@ def revoke_voucher(voucher_id):
     return jsonify(_voucher_dict(v))
 
 
+def purge_expired_vouchers() -> int:
+    """Delete vouchers that are expired or revoked and were never redeemed.
+    Redeemed vouchers (usage_count > 0) are always kept - guest sessions
+    reference them for history, and the DB would refuse the delete anyway.
+    Shared by the `purge-expired-vouchers` CLI command and the scheduler."""
+    now = datetime.now(timezone.utc)
+    n = Voucher.query.filter(
+        Voucher.usage_count == 0,
+        db.or_(
+            Voucher.is_active.is_(False),
+            db.and_(Voucher.expires_at.isnot(None), Voucher.expires_at < now),
+        ),
+    ).delete(synchronize_session=False)
+    db.session.commit()
+    return n
+
+
 def _assert_portal_access(portal: Portal):
     user = get_current_user()
     if user.is_superadmin:

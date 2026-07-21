@@ -2,10 +2,10 @@ import csv
 import io
 import math
 from collections import defaultdict, Counter
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from flask import request, jsonify, Response
 from app.extensions import db
-from app.models import GuestSession, Portal, AccessPoint
+from app.models import GuestSession, Portal, AccessPoint, PlatformSetting
 from app.models import PortalField
 from app.services.unifi import UnifiClient, UnifiError
 from . import api_bp
@@ -394,6 +394,28 @@ def _assert_portal_access(portal: Portal):
     if portal.site.tenant_id != user.tenant_id:
         from flask import abort
         abort(403)
+
+
+def purge_guest_data() -> int:
+    """Delete guest sessions past their configured retention period (portal-
+    level data_retention_days, falling back to the global guest_retention_days
+    setting). No-op for any portal where neither is set. Shared by the
+    `purge-guest-data` CLI command and the scheduler."""
+    global_str = db.session.get(PlatformSetting, "guest_retention_days")
+    global_days = int(global_str.value) if global_str and global_str.value else None
+    total = 0
+    for portal in Portal.query.all():
+        days = portal.data_retention_days or global_days
+        if not days or days <= 0:
+            continue
+        cutoff = datetime.now(timezone.utc) - timedelta(days=days)
+        n = GuestSession.query.filter(
+            GuestSession.portal_id == portal.id,
+            GuestSession.authorized_at < cutoff,
+        ).delete(synchronize_session=False)
+        total += n
+    db.session.commit()
+    return total
 
 
 def _unifi_device_dict(c: dict) -> dict:

@@ -142,26 +142,13 @@ def create_app(env: str | None = None) -> Flask:
     def _cli_purge_guests():
         """Delete guest sessions that have exceeded their configured retention period.
 
-        Safe to run via cron:
+        Also runs automatically on a schedule - see app/scheduler.py. Safe to
+        additionally run via cron if you want it on-demand too:
 
             docker compose exec backend flask purge-guest-data
         """
-        from .models import PlatformSetting, GuestSession, Portal
-        from datetime import datetime, timezone, timedelta
-        global_str = db.session.get(PlatformSetting, "guest_retention_days")
-        global_days = int(global_str.value) if global_str and global_str.value else None
-        total = 0
-        for portal in Portal.query.all():
-            days = portal.data_retention_days or global_days
-            if not days or days <= 0:
-                continue
-            cutoff = datetime.now(timezone.utc) - timedelta(days=days)
-            n = GuestSession.query.filter(
-                GuestSession.portal_id == portal.id,
-                GuestSession.authorized_at < cutoff,
-            ).delete(synchronize_session=False)
-            total += n
-        db.session.commit()
+        from .api.guests import purge_guest_data
+        total = purge_guest_data()
         print(f"Purged {total} guest session(s).")
 
     @app.cli.command("reset-password")
@@ -253,6 +240,22 @@ def create_app(env: str | None = None) -> Flask:
         ).delete(synchronize_session=False)
         db.session.commit()
         print(f"Purged {n} expired trusted device(s).")
+
+    @app.cli.command("purge-expired-vouchers")
+    def _cli_purge_expired_vouchers():
+        """Delete vouchers that are expired or revoked and were never
+        redeemed. Redeemed vouchers (usage_count > 0) are always kept, even
+        if since expired/revoked/exhausted - guest sessions reference them
+        for history, and the DB would refuse the delete anyway.
+
+        Also runs automatically on a schedule - see app/scheduler.py. Safe to
+        additionally run via cron if you want it on-demand too:
+
+            docker compose exec backend flask purge-expired-vouchers
+        """
+        from .api.vouchers import purge_expired_vouchers
+        n = purge_expired_vouchers()
+        print(f"Purged {n} unused expired/revoked voucher(s).")
 
     @app.cli.command("purge-audit-log")
     @click.option("--days", type=int, required=True, help="Delete audit log entries older than this many days.")
