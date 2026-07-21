@@ -2,8 +2,10 @@ import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
 import { tenantsApi } from '../../api'
+import type { Tenant } from '../../types'
 import PageHeader from '../../components/ui/PageHeader'
 import Modal from '../../components/ui/Modal'
+import ConfirmModal from '../../components/ui/ConfirmModal'
 import Badge from '../../components/ui/Badge'
 import SearchInput from '../../components/ui/SearchInput'
 import { useDisplaySettings } from '../../hooks/useDisplaySettings'
@@ -16,6 +18,7 @@ export default function TenantsPage() {
   const [showCreate, setShowCreate] = useState(false)
   const [name, setName] = useState('')
   const [search, setSearch] = useState('')
+  const [deletingTenant, setDeletingTenant] = useState<Tenant | null>(null)
 
   const { data: tenants, isLoading } = useQuery({
     queryKey: ['tenants'],
@@ -43,6 +46,16 @@ export default function TenantsPage() {
       tenantsApi.update(id, { is_active }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['tenants'] }),
     onError: () => toast.error('Update failed'),
+  })
+
+  const deleteMutation = useMutation({
+    mutationFn: (id: number) => tenantsApi.delete(id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ['tenants'] })
+      toast.success('Tenant deleted')
+      setDeletingTenant(null)
+    },
+    onError: () => toast.error('Failed to delete tenant'),
   })
 
   return (
@@ -90,9 +103,15 @@ export default function TenantsPage() {
                   <td className="px-6 py-3 text-right">
                     <button
                       onClick={() => toggleMutation.mutate({ id: t.id, is_active: !t.is_active })}
-                      className="text-xs text-blue-600 hover:underline"
+                      className="text-xs text-blue-600 hover:underline mr-4"
                     >
                       {t.is_active ? 'Disable' : 'Enable'}
+                    </button>
+                    <button
+                      onClick={() => setDeletingTenant(t)}
+                      className="text-xs text-red-600 hover:underline"
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>
@@ -134,6 +153,23 @@ export default function TenantsPage() {
           </div>
         </form>
       </Modal>
+
+      <ConfirmModal
+        open={!!deletingTenant}
+        onClose={() => setDeletingTenant(null)}
+        onConfirm={() => deletingTenant && deleteMutation.mutate(deletingTenant.id)}
+        title="Delete Tenant"
+        confirmLabel="Delete Tenant"
+        loading={deleteMutation.isPending}
+        message={
+          <>
+            Delete <span className="font-medium text-gray-900 dark:text-gray-100">{deletingTenant?.name}</span>?
+            Its controllers, sites, and portals aren't deleted - they're reassigned to the platform (unscoped from
+            any tenant) and keep working. Any users whose primary organisation is this tenant will lose that
+            assignment and need to be reassigned manually. This can't be undone.
+          </>
+        }
+      />
     </div>
   )
 }

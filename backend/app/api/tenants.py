@@ -1,6 +1,6 @@
 from flask import request, jsonify
 from app.extensions import db
-from app.models import Tenant
+from app.models import Tenant, UnifiController, UnifiSite, User, ControllerOwnerType
 from . import api_bp
 from .decorators import require_superadmin, require_admin, get_current_user, require_auth
 
@@ -59,9 +59,41 @@ def update_tenant(tenant_id):
 @api_bp.route("/tenants/<int:tenant_id>", methods=["DELETE"])
 @require_superadmin
 def delete_tenant(tenant_id):
+    """Deleting a tenant reallocates everything it owns to the platform
+    (tenant_id -> NULL) rather than deleting those assets - controllers,
+    sites, and the portals under them keep working, just unscoped from any
+    tenant. Tenant membership rows are removed automatically by the DB
+    (ON DELETE CASCADE); Portal has no tenant_id of its own, so nothing to
+    do there - it inherits ownership from its site."""
     tenant = Tenant.query.get_or_404(tenant_id)
+    name = tenant.name
+
+    controllers_n = UnifiController.query.filter_by(tenant_id=tenant_id).update(
+        {"tenant_id": None, "owner_type": ControllerOwnerType.PLATFORM},
+        synchronize_session=False,
+    )
+    sites_n = UnifiSite.query.filter_by(tenant_id=tenant_id).update(
+        {"tenant_id": None}, synchronize_session=False,
+    )
+    users_n = User.query.filter_by(tenant_id=tenant_id).update(
+        {"tenant_id": None}, synchronize_session=False,
+    )
+
     db.session.delete(tenant)
     db.session.commit()
+
+    from app.audit import record
+    record(
+        "tenant.delete",
+        resource_type="tenant",
+        resource_id=tenant_id,
+        detail={
+            "name": name,
+            "reassigned_controllers": controllers_n,
+            "reassigned_sites": sites_n,
+            "reassigned_users": users_n,
+        },
+    )
     return "", 204
 
 
