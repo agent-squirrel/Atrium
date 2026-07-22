@@ -57,3 +57,9 @@ Requires Docker and Docker Compose.
 
 Building on Atrium or working from source instead of the published images?
 See [DEVELOPMENT.md](DEVELOPMENT.md).
+
+## AI-assisted development
+
+Atrium's code, documentation, and companion site were developed with
+substantial assistance from Claude (Anthropic), primarily Claude Sonnet 5.
+Every feature was specified, reviewed, and tested by a human maintainer.
