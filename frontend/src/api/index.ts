@@ -43,6 +43,8 @@ export const authApi = {
     api.post<{ message: string }>('/auth/forgot-password', { email }),
   resetPassword: (token: string, new_password: string) =>
     api.post<{ message: string }>('/auth/reset-password', { token, new_password }),
+  setupAccount: (token: string, password: string) =>
+    api.post<{ message: string }>('/auth/setup-account', { token, password }),
 }
 
 // ── Tenants ─────────────────────────────────────────────────────────────────
@@ -60,7 +62,7 @@ export const tenantsApi = {
 export const usersApi = {
   list: () => api.get<User[]>('/users'),
   get: (id: number) => api.get<User>(`/users/${id}`),
-  create: (data: Partial<User> & { password: string }) => api.post<User>('/users', data),
+  create: (data: Partial<User> & { password?: string; send_invite?: boolean }) => api.post<User>('/users', data),
   update: (id: number, data: Partial<User> & { password?: string; tenant_id?: number | null }) =>
     api.put<User>(`/users/${id}`, data),
   delete: (id: number) => api.delete(`/users/${id}`),
@@ -192,6 +194,7 @@ export const settingsApi = {
   getMyIp: () => api.get<{ ip: string }>('/settings/my-ip'),
   getDisplaySettings: () => api.get<{ timezone: string; date_format: string }>('/settings/display'),
   getVersion: () => api.get<{ app_version: string; schema_revision: string | null }>('/settings/version'),
+  getEmailStatus: () => api.get<{ enabled: boolean }>('/settings/email/status'),
   get: () => api.get<PlatformSettings>('/settings'),
   update: (data: Record<string, string>) => api.put<PlatformSettings>('/settings', data),
   purgeGuests: () => api.post<{ deleted: number }>('/settings/purge-guests'),

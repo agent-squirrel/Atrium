@@ -57,13 +57,22 @@ def create_user():
 
     email = (data.get("email") or "").lower().strip()
     password = data.get("password") or ""
+    send_invite = bool(data.get("send_invite")) and not password
     role = data.get("role", UserRole.CLIENT)
     tenant_id = data.get("tenant_id")
 
-    if not email or not password:
-        return jsonify({"error": "Email and password are required"}), 400
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
 
-    if err := _check_password(password):
+    if not password and not send_invite:
+        return jsonify({"error": "Password is required"}), 400
+
+    if send_invite:
+        from app.models import EmailSettings
+        if not EmailSettings.get_or_create().enabled:
+            return jsonify({"error": "Email is not configured - set a password for this user instead."}), 400
+
+    if password and (err := _check_password(password)):
         return jsonify({"error": err}), 400
 
     if role not in UserRole.ALL:
@@ -104,12 +113,30 @@ def create_user():
         first_name=data.get("first_name", "").strip() or None,
         last_name=data.get("last_name", "").strip() or None,
     )
-    new_user.set_password(password)
+    if password:
+        new_user.set_password(password)
+    else:
+        # Invited: nobody knows this password, including the admin creating
+        # the account - it only ever gets replaced via the setup-account
+        # link. password_hash is NOT NULL, so a real (if unusable) hash is
+        # required rather than leaving it blank.
+        import secrets
+        new_user.set_password(secrets.token_urlsafe(32))
     db.session.add(new_user)
+    db.session.flush()  # assign an id (needed for the invite token) without committing yet
+
+    if send_invite:
+        try:
+            from .auth import send_invite_email
+            send_invite_email(new_user)
+        except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": f"Could not send invite email: {e}. Set a password instead, or check email settings."}), 502
+
     db.session.commit()
     from app.audit import record
     record("user.create", resource_type="user", resource_id=new_user.id,
-           detail={"email": email, "role": role})
+           detail={"email": email, "role": role, "invited": send_invite})
     return jsonify(_user_dict(new_user)), 201
 
 

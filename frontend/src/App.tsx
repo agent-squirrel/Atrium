@@ -8,6 +8,7 @@ import AtriumLogo from './components/ui/AtriumLogo'
 import LoginPage from './pages/Login'
 import ForgotPasswordPage from './pages/ForgotPassword'
 import ResetPasswordPage from './pages/ResetPassword'
+import SetupAccountPage from './pages/SetupAccount'
 import SetupPage from './pages/Setup'
 import Layout from './components/ui/Layout'
 import Dashboard from './pages/Dashboard'
@@ -123,6 +124,10 @@ export default function App() {
         <Route
           path="/reset-password"
           element={needsSetup ? <Navigate to="/setup" replace /> : <ResetPasswordPage />}
+        />
+        <Route
+          path="/setup-account"
+          element={needsSetup ? <Navigate to="/setup" replace /> : <SetupAccountPage />}
         />
         <Route
           path="/"

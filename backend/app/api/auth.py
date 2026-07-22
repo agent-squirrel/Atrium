@@ -13,9 +13,16 @@ from .decorators import require_auth, get_current_user
 _RESET_TOKEN_SALT = "password-reset"
 _RESET_TOKEN_MAX_AGE = 3600  # 1 hour
 
+_INVITE_TOKEN_SALT = "account-setup"
+_INVITE_TOKEN_MAX_AGE = 3600 * 24 * 7  # 7 days - a standing invite, not a reactive "I forgot" link
+
 
 def _reset_serializer() -> URLSafeTimedSerializer:
     return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt=_RESET_TOKEN_SALT)
+
+
+def _invite_serializer() -> URLSafeTimedSerializer:
+    return URLSafeTimedSerializer(current_app.config["SECRET_KEY"], salt=_INVITE_TOKEN_SALT)
 
 
 def _password_fingerprint(user: User) -> str:
@@ -337,6 +344,58 @@ def reset_password():
     db.session.commit()
     record("auth.password_reset_completed", user=user)
     return jsonify({"message": "Password updated. You can now sign in."})
+
+
+def send_invite_email(user: User) -> None:
+    """Emails a newly-created user a link to set their own password, instead
+    of an admin setting one for them. Raises on failure (MailerNotConfigured
+    or any SMTP error) - unlike forgot_password, which can fail silently
+    since the user can just retry later, a failure here means the account
+    was created with an unknown/unusable password, so the caller (create_user)
+    needs to know and roll back rather than leave it orphaned."""
+    token = _invite_serializer().dumps({"uid": user.id, "fp": _password_fingerprint(user)})
+    setup_url = f"{request.host_url.rstrip('/')}/admin/setup-account?token={token}"
+    from app.mailer import send_email
+    send_email(
+        user.email,
+        "Set up your Atrium account",
+        f"You've been added to Atrium. Set your password to finish setting up your account "
+        f"(this link expires in 7 days):\n{setup_url}\n\n"
+        f"If you weren't expecting this, you can ignore this email.",
+    )
+
+
+@api_bp.route("/auth/setup-account", methods=["POST"])
+@limiter.limit("10 per hour")
+def setup_account():
+    from app.audit import record
+
+    data = request.get_json(silent=True) or {}
+    token = (data.get("token") or "").strip()
+    new = data.get("password") or ""
+
+    if not token or not new:
+        return jsonify({"error": "token and password are required"}), 400
+
+    try:
+        payload = _invite_serializer().loads(token, max_age=_INVITE_TOKEN_MAX_AGE)
+    except SignatureExpired:
+        return jsonify({"error": "This setup link has expired. Ask an admin to resend your invite."}), 400
+    except BadSignature:
+        return jsonify({"error": "Invalid setup link."}), 400
+
+    user = db.session.get(User, payload.get("uid"))
+    if not user or not user.is_active or payload.get("fp") != _password_fingerprint(user):
+        return jsonify({"error": "This setup link is no longer valid."}), 400
+
+    from .users import _check_password
+    if err := _check_password(new):
+        return jsonify({"error": err}), 400
+
+    user.set_password(new)
+    db.session.commit()
+    record("auth.account_setup_completed", user=user)
+    return jsonify({"message": "Account set up. You can now sign in."})
 
 
 def _user_payload(user: User) -> dict:

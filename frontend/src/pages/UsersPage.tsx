@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import toast from 'react-hot-toast'
-import { usersApi, tenantsApi } from '../api'
+import { usersApi, tenantsApi, settingsApi } from '../api'
 import { useAuthStore } from '../store/auth'
 import PageHeader from '../components/ui/PageHeader'
 import Modal from '../components/ui/Modal'
@@ -315,16 +315,26 @@ export default function UsersPage() {
     return Array.from(map.entries()).map(([id, name]) => ({ id, name }))
   })()
 
+  const { data: emailStatus } = useQuery({
+    queryKey: ['email_status'],
+    queryFn: () => settingsApi.getEmailStatus().then(r => r.data),
+    staleTime: 60_000,
+  })
+  const emailConfigured = emailStatus?.enabled ?? false
+
   // Create modal
   const [showCreate, setShowCreate] = useState(false)
   const [createForm, setCreateForm] = useState(() => ({
     email: '', password: '', confirmPassword: '', first_name: '', last_name: '',
     role: 'client' as UserRole,
+    sendInvite: true,
     // Pre-fill tenant for single-tenant admins
     tenant_id: !actorIsSuperadmin && actorAdminTenants.length === 1
       ? String(actorAdminTenants[0].id) : '',
   }))
   const [createPwError, setCreatePwError] = useState<string | null>(null)
+  // Mandate a password whenever email isn't configured, regardless of the toggle's last state
+  const willInvite = createForm.sendInvite && emailConfigured
 
   // Edit modal
   const [editingUser, setEditingUser] = useState<User | null>(null)
@@ -357,7 +367,7 @@ export default function UsersPage() {
   const createMutation = useMutation({
     mutationFn: () => usersApi.create({
       email: createForm.email,
-      password: createForm.password,
+      ...(willInvite ? { send_invite: true } : { password: createForm.password }),
       first_name: createForm.first_name || undefined,
       last_name: createForm.last_name || undefined,
       role: createForm.role,
@@ -365,11 +375,12 @@ export default function UsersPage() {
     } as any),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['users'] })
-      toast.success('User created')
+      toast.success(willInvite ? 'User created - setup email sent' : 'User created')
       setShowCreate(false)
       setCreatePwError(null)
       setCreateForm({
         email: '', password: '', confirmPassword: '', first_name: '', last_name: '', role: 'client',
+        sendInvite: true,
         tenant_id: !actorIsSuperadmin && actorAdminTenants.length === 1
           ? String(actorAdminTenants[0].id) : '',
       })
@@ -473,12 +484,14 @@ export default function UsersPage() {
       <Modal open={showCreate} onClose={() => setShowCreate(false)} title="Add User" size="lg">
         <form onSubmit={e => {
           e.preventDefault()
-          if (createForm.password !== createForm.confirmPassword) {
-            setCreatePwError('Passwords do not match'); return
+          if (!willInvite) {
+            if (createForm.password !== createForm.confirmPassword) {
+              setCreatePwError('Passwords do not match'); return
+            }
+            const err = checkPassword(createForm.password)
+            setCreatePwError(err)
+            if (err) return
           }
-          const err = checkPassword(createForm.password)
-          setCreatePwError(err)
-          if (err) return
           createMutation.mutate()
         }} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -501,20 +514,47 @@ export default function UsersPage() {
               onChange={e => setCreateForm(f => ({ ...f, email: e.target.value }))}
               className={inp} required />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
-            <input type="password" value={createForm.password}
-              onChange={e => { setCreateForm(f => ({ ...f, password: e.target.value })); setCreatePwError(null) }}
-              className={inp} required />
-            <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">At least 8 characters, including a number and special character (e.g. ! @ # $)</p>
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
-            <input type="password" value={createForm.confirmPassword}
-              onChange={e => { setCreateForm(f => ({ ...f, confirmPassword: e.target.value })); setCreatePwError(null) }}
-              className={inp} required />
-            {createPwError && <p className="text-red-500 text-xs mt-1">{createPwError}</p>}
-          </div>
+          {emailConfigured && (
+            <div className="flex rounded-lg border border-gray-300 dark:border-gray-700 p-1 text-sm">
+              <button type="button"
+                onClick={() => setCreateForm(f => ({ ...f, sendInvite: true }))}
+                className={`flex-1 rounded-md py-1.5 font-medium transition-colors ${createForm.sendInvite ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}>
+                Email a setup link
+              </button>
+              <button type="button"
+                onClick={() => setCreateForm(f => ({ ...f, sendInvite: false }))}
+                className={`flex-1 rounded-md py-1.5 font-medium transition-colors ${!createForm.sendInvite ? 'bg-blue-600 text-white' : 'text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'}`}>
+                Set password now
+              </button>
+            </div>
+          )}
+          {willInvite ? (
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              They'll get an email with a link to set their own password. The link expires in 7 days.
+            </p>
+          ) : (
+            <>
+              {!emailConfigured && (
+                <p className="text-xs text-amber-700 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900 rounded-lg px-3 py-2">
+                  Email isn't configured, so you'll need to set a password for this user yourself.
+                </p>
+              )}
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Password</label>
+                <input type="password" value={createForm.password}
+                  onChange={e => { setCreateForm(f => ({ ...f, password: e.target.value })); setCreatePwError(null) }}
+                  className={inp} required />
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">At least 8 characters, including a number and special character (e.g. ! @ # $)</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Confirm Password</label>
+                <input type="password" value={createForm.confirmPassword}
+                  onChange={e => { setCreateForm(f => ({ ...f, confirmPassword: e.target.value })); setCreatePwError(null) }}
+                  className={inp} required />
+                {createPwError && <p className="text-red-500 text-xs mt-1">{createPwError}</p>}
+              </div>
+            </>
+          )}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Role</label>

@@ -3,7 +3,7 @@ from app.extensions import db
 from app.models import PlatformSetting, GuestSession, Portal, EmailSettings, EmailEncryption
 from app.backup import _current_schema_revision
 from . import api_bp
-from .decorators import require_superadmin, require_auth, get_current_user
+from .decorators import require_superadmin, require_admin, require_auth, get_current_user
 from datetime import datetime, timezone, timedelta
 from zoneinfo import available_timezones
 
@@ -84,6 +84,16 @@ def get_display_settings():
         "timezone": get_setting("timezone"),
         "date_format": get_setting("date_format"),
     })
+
+
+@api_bp.route("/settings/email/status", methods=["GET"])
+@require_admin
+def get_email_status():
+    """Whether outbound email is configured, with no other detail - lets any
+    admin who can create users (not just superadmins, who are the only ones
+    allowed to read the full /settings/email with its host/credentials)
+    decide whether to offer emailing an account-setup invite."""
+    return jsonify({"enabled": EmailSettings.get_or_create().enabled})
 
 
 @api_bp.route("/settings/version", methods=["GET"])
